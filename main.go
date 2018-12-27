@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"strconv"
 
 	"github.com/gorilla/mux"
 )
@@ -30,7 +29,7 @@ type Error struct {
 
 var notes []Note
 
-var noteID = 2
+var noteID int
 
 func main() {
 	notes = append(
@@ -98,13 +97,14 @@ func GetNoteEndpoint(w http.ResponseWriter, req *http.Request) {
 	w.Write(data)
 }
 
+// CreateNoteEndpoint creates a new note in notes slice
 func CreateNoteEndpoint(w http.ResponseWriter, req *http.Request) {
-	var Note Note
-	_ = json.NewDecoder(req.Body).Decode(&Note)
-	Note.ID = strconv.Itoa(noteId)
-	noteId = noteId + 1
-	notes = append(notes, Note)
-	json.NewEncoder(w).Encode(notes)
+	var n Note
+	_ = json.NewDecoder(req.Body).Decode(&n)
+
+	n.ID = string(len(notes))
+	notes = append(notes, n)
+	json.NewEncoder(w).Encode(n.ID)
 }
 
 func DeleteNoteEndpoint(w http.ResponseWriter, req *http.Request) {
