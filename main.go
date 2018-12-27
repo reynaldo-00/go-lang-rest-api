@@ -27,6 +27,11 @@ type Error struct {
 	Message string `json:"message,omitempty"`
 }
 
+// Success message when req is succesful
+type Success struct {
+	Message string `json:"mesage,omitempty"`
+}
+
 var notes []Note
 
 var noteID int
@@ -128,30 +133,40 @@ func DeleteNoteEndpoint(w http.ResponseWriter, req *http.Request) {
 		w.WriteHeader(http.StatusNotFound)
 		w.Write(data)
 	}
-	error := Error{Message: "Deleted " + string(deleted) + "notes"}
-	data, _ := json.Marshal(error)
+	s := Success{Message: "Deleted " + string(deleted) + "notes"}
+	data, _ := json.Marshal(s)
 	w.WriteHeader(http.StatusOK)
 	w.Write(data)
 
 }
 
+// EditNoteEndpoint edits note with matching id from request
 func EditNoteEndpoint(w http.ResponseWriter, req *http.Request) {
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+
 	params := mux.Vars(req)
 	var Note Note
 	_ = json.NewDecoder(req.Body).Decode(&Note)
+	updated := 0
+
 	for index, item := range notes {
 		if item.ID == params["id"] {
-			notes = append(notes[:index], notes[index+1:]...)
-			notes = append(notes, Note)
+			notes[index] = item
 			json.NewEncoder(w).Encode(notes)
-			break
+			updated = updated + 1
 		}
 	}
-	error := Error{Message: "Cant edit note by that id"}
-	data, _ := json.Marshal(error)
-	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-	w.Header().Set("Access-Control-Allow-Origin", "*")
-	w.WriteHeader(http.StatusNotFound)
-	w.Write(data)
 
+	if updated == 0 {
+		error := Error{Message: "Can't delete a note that doesn't exist."}
+		data, _ := json.Marshal(error)
+		w.WriteHeader(http.StatusNotFound)
+		w.Write(data)
+	}
+
+	s := Success{Message: "Updated " + string(updated) + "notes"}
+	data, _ := json.Marshal(s)
+	w.WriteHeader(http.StatusOK)
+	w.Write(data)
 }
