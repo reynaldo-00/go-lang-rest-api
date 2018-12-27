@@ -10,54 +10,90 @@ import (
 	"github.com/gorilla/mux"
 )
 
+// Note structure
 type Note struct {
-	ID       string   `json:"id,omitempty"`
-	Title    string   `json:"title,omitempty"`
-	TextBody string   `json:"textBody,omitempty"`
-	Tags     []string `json:"tags"`
+	// ID of note in databse
+	ID string `json:"id,omitempty"`
+	// Title for note
+	Title string `json:"title,omitempty"`
+	// Body for the note
+	TextBody string `json:"textBody,omitempty"`
+	// Tags for note
+	Tags []string `json:"tags"`
 }
 
+// Error structure
 type Error struct {
+	// Error mesasge
 	Message string `json:"message,omitempty"`
 }
 
 var notes []Note
 
-var noteId int = 2
+var noteID = 2
 
-func GetNotesEndpoint(w http.ResponseWriter, req *http.Request) {
+func main() {
+	notes = append(
+		notes,
+		Note{
+			ID:       "0",
+			Title:    "Note Title",
+			TextBody: "Note Body",
+			Tags:     []string{"tag1", "tag2"},
+		},
+		Note{
+			ID:       "1",
+			Title:    "Note Title 2",
+			TextBody: "Note Body 2",
+		},
+	)
+
+	router := mux.NewRouter()
+
+	router.HandleFunc("/note/get/all", GetAllNotesEndpoint).Methods("GET")
+	router.HandleFunc("/note/get/{id}", GetNoteEndpoint).Methods("GET")
+	router.HandleFunc("/note/create", CreateNoteEndpoint).Methods("POST")
+	router.HandleFunc("/note/delete/{id}", DeleteNoteEndpoint).Methods("DELETE")
+	router.HandleFunc("/note/edit/{id}", EditNoteEndpoint).Methods("PUT")
+
+	fmt.Println("Server is running...")
+	log.Fatal(http.ListenAndServe(":12345", router))
+}
+
+// GetAllNotesEndpoint gets all the notes from notes
+func GetAllNotesEndpoint(w http.ResponseWriter, req *http.Request) {
 	// json.NewEncoder(w).Encode(notes)
+
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	w.Header().Set("Access-Control-Allow-Origin", "*")
 
 	if len(notes) <= 0 {
 		error := Error{Message: "Notes could not be retrieved."}
 		data, _ := json.Marshal(error)
-		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-		w.Header().Set("Access-Control-Allow-Origin", "*")
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write(data)
 	}
 
 	data, _ := json.Marshal(notes)
-	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.WriteHeader(http.StatusOK)
 	w.Write(data)
 }
 
+// GetNoteEndpoint gets a specific note from notes
 func GetNoteEndpoint(w http.ResponseWriter, req *http.Request) {
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+
 	params := mux.Vars(req)
-	// var note Note
+
 	for _, item := range notes {
 		if item.ID == params["id"] {
 			json.NewEncoder(w).Encode(item)
 			return
 		}
 	}
-	// json.NewEncoder(w).Encode(&Note{})
 	error := Error{Message: "Cant find note by that id"}
 	data, _ := json.Marshal(error)
-	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.WriteHeader(http.StatusNotFound)
 	w.Write(data)
 }
@@ -106,20 +142,4 @@ func EditNoteEndpoint(w http.ResponseWriter, req *http.Request) {
 	w.WriteHeader(http.StatusNotFound)
 	w.Write(data)
 
-}
-
-func main() {
-	router := mux.NewRouter()
-
-	notes = append(notes, Note{ID: "0", Title: "Note Title", TextBody: "Note Body", Tags: []string{"tag1", "tag2"}})
-	notes = append(notes, Note{ID: "1", Title: "Note Title 2", TextBody: "Note Body 2"})
-
-	router.HandleFunc("/note/get/all", GetNotesEndpoint).Methods("GET")
-	router.HandleFunc("/note/get/{id}", GetNoteEndpoint).Methods("GET")
-	router.HandleFunc("/note/create", CreateNoteEndpoint).Methods("POST")
-	router.HandleFunc("/note/delete/{id}", DeleteNoteEndpoint).Methods("DELETE")
-	router.HandleFunc("/note/edit/{id}", EditNoteEndpoint).Methods("PUT")
-
-	fmt.Println("Server is running...")
-	log.Fatal(http.ListenAndServe(":12345", router))
 }
