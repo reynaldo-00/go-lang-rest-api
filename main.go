@@ -107,20 +107,32 @@ func CreateNoteEndpoint(w http.ResponseWriter, req *http.Request) {
 	json.NewEncoder(w).Encode(n.ID)
 }
 
+// DeleteNoteEndpoint deletes note with matching id
 func DeleteNoteEndpoint(w http.ResponseWriter, req *http.Request) {
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+
 	params := mux.Vars(req)
+	deleted := 0
+
 	for index, item := range notes {
 		if item.ID == params["id"] {
 			notes = append(notes[:index], notes[index+1:]...)
-			break
+			deleted = deleted + 1
 		}
 	}
-	error := Error{Message: "Can't delete a note that doesn't exist."}
+
+	if deleted == 0 {
+		error := Error{Message: "Can't delete a note that doesn't exist."}
+		data, _ := json.Marshal(error)
+		w.WriteHeader(http.StatusNotFound)
+		w.Write(data)
+	}
+	error := Error{Message: "Deleted " + string(deleted) + "notes"}
 	data, _ := json.Marshal(error)
-	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-	w.Header().Set("Access-Control-Allow-Origin", "*")
-	w.WriteHeader(http.StatusNotFound)
+	w.WriteHeader(http.StatusOK)
 	w.Write(data)
+
 }
 
 func EditNoteEndpoint(w http.ResponseWriter, req *http.Request) {
