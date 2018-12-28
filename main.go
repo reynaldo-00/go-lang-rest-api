@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
+	"github.com/reynld/go-lang-rest-api/pkg/notes"
 )
 
 func main() {
@@ -26,11 +27,11 @@ func main() {
 
 	router := mux.NewRouter()
 
-	router.HandleFunc("/note/get/all", GetAllNotesEndpoint).Methods("GET")
-	router.HandleFunc("/note/get/{id}", GetNoteEndpoint).Methods("GET")
-	router.HandleFunc("/note/create", CreateNoteEndpoint).Methods("POST")
-	router.HandleFunc("/note/delete/{id}", DeleteNoteEndpoint).Methods("DELETE")
-	router.HandleFunc("/note/edit/{id}", EditNoteEndpoint).Methods("PUT")
+	router.HandleFunc("/note/get/all", notes.GetAllNotesEndpoint).Methods("GET")
+	router.HandleFunc("/note/get/{id}", notes.GetNoteEndpoint).Methods("GET")
+	router.HandleFunc("/note/create", notes.CreateNoteEndpoint).Methods("POST")
+	router.HandleFunc("/note/delete/{id}", notes.DeleteNoteEndpoint).Methods("DELETE")
+	router.HandleFunc("/note/edit/{id}", notes.EditNoteEndpoint).Methods("PUT")
 
 	fmt.Println("Server is running...")
 	log.Fatal(http.ListenAndServe(":12345", router))
