@@ -7,10 +7,6 @@ import (
 	"github.com/gorilla/mux"
 )
 
-var notes []Note
-
-var noteID int
-
 // Note structure
 type Note struct {
 	// ID of note in databse
@@ -33,6 +29,10 @@ type Error struct {
 type Success struct {
 	Message string `json:"mesage,omitempty"`
 }
+
+var notes []Note
+
+var noteID int
 
 // GetAllNotesEndpoint gets all the notes from notes
 func GetAllNotesEndpoint(w http.ResponseWriter, req *http.Request) {
